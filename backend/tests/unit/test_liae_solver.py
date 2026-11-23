@@ -240,7 +240,11 @@ class TestLIAESolver:
         assert result.satisfied_requirements == 2
         unmet = [a for a in result.assignments if not a.is_satisfied]
         assert len(unmet) == 1
-        assert "could not be satisfied" in unmet[0].explanation.lower() or "capacity" in unmet[0].explanation.lower()
+        has_msg = (
+            "could not be satisfied" in unmet[0].explanation.lower()
+            or "capacity" in unmet[0].explanation.lower()
+        )
+        assert has_msg
 
     def test_compatible_substitute_allocation(self) -> None:
         """When primary equipment is fully booked, the solver allocates a compatible substitute."""

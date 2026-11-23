@@ -165,8 +165,9 @@ def get_allocation_explanation(
         for a in run.assignments
     ]
 
+    status_str = run.status.value if hasattr(run.status, "value") else str(run.status)
     summary = (
-        f"LIAE run {run.id} concluded with status '{run.status.value}' "
+        f"LIAE run {run.id} concluded with status '{status_str}' "
         f"({run.satisfied_requirements}/{run.total_requirements} requirements satisfied "
         f"across {run.allocated_projects}/{run.total_projects} projects in "
         f"{run.solve_time_seconds:.2f}s)."

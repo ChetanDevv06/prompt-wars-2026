@@ -13,10 +13,10 @@ RUN pip install --no-cache-dir uv==0.13.0
 
 # Copy dependency manifest
 COPY pyproject.toml .
+RUN touch README.md
 
 # Install dependencies into /build/.venv
 RUN uv venv .venv && \
-    uv pip install --python .venv/bin/python --no-cache ".[" && \
     uv pip install --python .venv/bin/python --no-cache .
 
 # --- Runtime stage ---

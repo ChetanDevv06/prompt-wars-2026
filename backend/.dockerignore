@@ -24,5 +24,6 @@ coverage.xml
 docker-compose.yml
 .git/
 .gitignore
-README.md
+# README.md (needed for package build metadata)
+!README.md
 tests/

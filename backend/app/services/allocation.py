@@ -356,7 +356,9 @@ class AllocationService:
                 limit=200,
             )
             for res in res_items:
-                res_status_val = res.status.value if hasattr(res.status, "value") else str(res.status)
+                res_status_val = (
+                    res.status.value if hasattr(res.status, "value") else str(res.status)
+                )
                 if res_status_val in (
                     ReservationStatus.CONFIRMED.value,
                     ReservationStatus.PROVISIONALLY_HELD.value,

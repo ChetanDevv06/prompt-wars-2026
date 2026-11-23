@@ -7,6 +7,7 @@ requirement, explaining why an allocation was granted or why it remained unmet.
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -81,17 +82,21 @@ def generate_assignment_explanation(
         )
 
     if project:
-        p_val = project.priority.value if hasattr(project.priority, "value") else str(project.priority)
+        p_val = (
+            project.priority.value
+            if hasattr(project.priority, "value")
+            else str(project.priority)
+        )
         text_parts.append(f"Project priority: {p_val.upper()}.")
         factors.append(f"priority_{p_val}")
 
         deadline = (
-            project.deadline.replace(tzinfo=timezone.utc)
+            project.deadline.replace(tzinfo=UTC)
             if project.deadline and project.deadline.tzinfo is None
             else project.deadline
         )
         end_time = (
-            assignment.assigned_end.replace(tzinfo=timezone.utc)
+            assignment.assigned_end.replace(tzinfo=UTC)
             if assignment.assigned_end and assignment.assigned_end.tzinfo is None
             else assignment.assigned_end
         )

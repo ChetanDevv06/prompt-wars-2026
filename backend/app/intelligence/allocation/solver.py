@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import time
 import uuid
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 
 from ortools.sat.python import cp_model
 
@@ -50,8 +50,8 @@ def _to_utc(dt: datetime | None) -> datetime | None:
     if dt is None:
         return None
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 class LIAEOptimizer:

@@ -25,11 +25,7 @@ def compute_priority_weight(priority_value: str | object) -> int:
 
     CRITICAL = 40, HIGH = 25, MEDIUM = 15, LOW = 5.
     """
-    p_str = (
-        priority_value.value
-        if hasattr(priority_value, "value")
-        else str(priority_value)
-    )
+    p_str = str(getattr(priority_value, "value", priority_value))
     weights = {
         "critical": 40,
         "high": 25,
