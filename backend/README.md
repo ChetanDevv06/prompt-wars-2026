@@ -20,8 +20,8 @@ The backend exposes a versioned JSON API (`/api/v1/`) and is designed as a **mod
 |------|---------|
 | Python | 3.12+ |
 | uv | 0.13+ |
-| PostgreSQL | 16+ (for local development) |
-| Docker + Docker Compose | For the local database |
+| PostgreSQL | 16+ (Docker or local instance) |
+| Docker + Docker Compose | Recommended for local development |
 
 ---
 
@@ -35,138 +35,180 @@ cd backend
 cp .env.example .env
 
 # Edit .env with your local values
-# The only required change for local development is DATABASE_URL
 ```
 
-The `.env` file is **never committed**. See `.env.example` for all supported variables.
+The `.env` file is **never committed**. Supported configuration options:
+
+| Variable | Default | Purpose |
+| :--- | :--- | :--- |
+| `APP_ENV` | `development` | Runtime environment (`development`, `test`, `production`) |
+| `APP_DEBUG` | `true` | Debug mode (enables Swagger UI at `/docs`) |
+| `APP_HOST` | `0.0.0.0` | API bind address |
+| `APP_PORT` | `8000` | API bind port |
+| `APP_LOG_LEVEL` | `INFO` | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+| `DATABASE_URL` | `postgresql://lablink:lablink_dev_password@localhost:5432/lablink_db` | PostgreSQL connection string |
+| `DATABASE_POOL_SIZE` | `5` | Persistent connection pool size |
+| `DATABASE_MAX_OVERFLOW` | `10` | Temporary pool overflow limit |
+| `DATABASE_POOL_TIMEOUT` | `30` | Seconds to wait before checkout timeout |
+| `DATABASE_POOL_RECYCLE` | `1800` | Seconds before recycling connections (prevents stale sockets) |
+| `DATABASE_ECHO` | `false` | Echo SQL queries to log (development only) |
+| `ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated CORS whitelist |
 
 ---
 
 ## Dependency Installation
 
 ```bash
-# Create a virtual environment and install all dependencies (including dev)
-uv venv .venv
+# Create virtual environment with Python 3.12
+uv venv .venv --python 3.12
+
+# Install dependencies (runtime + dev)
 uv pip install --python .venv/Scripts/python.exe -e ".[dev]"
 
-# Windows: activate the venv
-.venv\Scripts\activate
+# Windows PowerShell activation:
+.venv\Scripts\Activate.ps1
 
-# macOS/Linux: activate the venv
+# Linux / macOS activation:
 source .venv/bin/activate
 ```
 
 ---
 
-## Local Development
+## PostgreSQL Operations
 
-### 1. Start the database
+### 1. Local Development via Docker Compose
 
-```bash
-# From the backend/ directory
+```powershell
+# Start PostgreSQL container in background
 docker compose up -d
 
-# Verify PostgreSQL is healthy
+# Verify container status and health check
 docker compose ps
+
+# View database logs
+docker compose logs -f postgres
+
+# Stop PostgreSQL container (data is preserved in postgres_data volume)
+docker compose down
+
+# Stop container and wipe data volume (clean reset)
+docker compose down -v
 ```
 
-### 2. Run the API server
+### 2. Standalone / Native PostgreSQL (Windows PowerShell)
 
-```bash
+If running a native PostgreSQL service (e.g. PostgreSQL 16/18 on port 5432):
+
+```powershell
+# Create dedicated database user (if not using default superuser)
+& "E:\PostgreSQL\bin\createuser.exe" -U postgres -P -d lablink
+
+# Create development and test databases
+& "E:\PostgreSQL\bin\createdb.exe" -U lablink -E UTF8 lablink_db
+& "E:\PostgreSQL\bin\createdb.exe" -U lablink -E UTF8 lablink_test
+```
+
+### 3. Ephemeral Test Cluster (Automated or Manual)
+
+An ephemeral PostgreSQL cluster can be initialized for isolated testing:
+
+```powershell
+$testDbDir = "$env:TEMP\lablink_pg_test"
+& "E:\PostgreSQL\bin\initdb.exe" -D $testDbDir -U lablink -A trust -E UTF8 --locale=C
+& "E:\PostgreSQL\bin\pg_ctl.exe" -D $testDbDir -l "$env:TEMP\lablink_pg.log" -o "-p 5433" start
+
+# Run migrations or tests against port 5433
+$env:DATABASE_URL = "postgresql+psycopg://lablink@localhost:5433/lablink_test"
+
+# Stop the ephemeral cluster
+& "E:\PostgreSQL\bin\pg_ctl.exe" -D $testDbDir stop
+```
+
+---
+
+## Database Migrations (Alembic)
+
+Alembic migrations dynamically load database settings from `app.core.config.get_settings()` and model metadata from `app.models.base.Base.metadata`. No database passwords are hardcoded in `alembic.ini`.
+
+```powershell
+# Show current database revision
+uv run alembic current
+
+# Inspect migration history
+uv run alembic history
+
+# Generate a new migration after editing models in app/models/
+uv run alembic revision --autogenerate -m "add_table_name"
+
+# Apply all pending migrations to the database
+uv run alembic upgrade head
+
+# Rollback the last applied migration
+uv run alembic downgrade -1
+
+# Generate SQL script for offline inspection (dry-run without touching database)
+uv run alembic upgrade head --sql
+
+# Verify if models and database schema are in sync
+uv run alembic check
+```
+
+---
+
+## Running the Application
+
+```powershell
+# Run the API server with auto-reload
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The API is now available at `http://localhost:8000`.
-
-Interactive docs (development only): `http://localhost:8000/docs`
-
----
-
-## Database Migrations
-
-```bash
-# Initialise Alembic (first time only)
-alembic init alembic
-
-# Generate a migration (after model changes)
-alembic revision --autogenerate -m "describe_your_change"
-
-# Apply migrations
-alembic upgrade head
-
-# Downgrade one step
-alembic downgrade -1
-```
+- API Base: `http://localhost:8000`
+- Health Endpoint: `http://localhost:8000/api/v1/health`
+- Interactive OpenAPI Docs: `http://localhost:8000/docs`
 
 ---
 
-## Running Tests
+## Testing & Verification
 
-```bash
+```powershell
 # Run all tests with coverage report
 uv run pytest --cov=app --cov-report=term-missing
 
-# Run only unit tests
+# Run only unit tests (pure logic, no live database required)
 uv run pytest tests/unit/
 
-# Run only integration tests
-uv run pytest tests/integration/
+# Run integration tests (PostgreSQL connectivity, persistence, migrations)
+uv run pytest tests/integration/ -v
 ```
-
-> **Note:** Unit tests do not require a running database — they mock all database calls.
-> Integration tests that perform real queries require the Docker Compose database.
 
 ---
 
-## Linting and Formatting
+## Code Quality & Static Analysis
 
-```bash
-# Check linting
+```powershell
+# Run Ruff lint check
 uv run ruff check .
 
-# Fix auto-fixable issues
+# Fix auto-fixable lint issues
 uv run ruff check . --fix
 
-# Format code
-uv run ruff format .
-
-# Check formatting without modifying
+# Verify code formatting
 uv run ruff format . --check
-```
 
----
-
-## Type Checking
-
-```bash
+# Run static type checking
 uv run pyright
 ```
 
 ---
 
-## API Health Endpoint
+## Database Troubleshooting
 
-```
-GET /api/v1/health
-```
-
-Returns:
-
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-11-23T08:00:00Z",
-  "version": "0.1.0",
-  "environment": "development",
-  "python_version": "3.12.15",
-  "database": {
-    "connected": true,
-    "status": "ok"
-  }
-}
-```
-
-Status is `"ok"` when all subsystems are healthy, `"degraded"` otherwise.
+| Symptom | Probable Cause | Resolution |
+| :--- | :--- | :--- |
+| `FATAL: password authentication failed for user "lablink"` | PostgreSQL running on port 5432 with different credentials | Check if Docker container or another service owns port 5432; ensure `DATABASE_URL` in `.env` matches your active PostgreSQL user password. |
+| `FATAL: database "lablink_db" does not exist` | Database not yet created | Run `docker compose up -d` (automatically creates `lablink_db`), or execute `createdb -U lablink -E UTF8 lablink_db`. |
+| `TypeError: cannot use a string pattern on a bytes-like object` | Database created with `SQL_ASCII` instead of `UTF8` | Ensure databases are created with `-E UTF8`. |
+| Connection pool exhausted (`TimeoutError`) | High concurrency or unclosed sessions | Increase `DATABASE_POOL_SIZE` or verify all custom queries use `get_db_context()` or `get_db()` which close sessions in `finally`. |
 
 ---
 
@@ -175,59 +217,42 @@ Status is `"ok"` when all subsystems are healthy, `"degraded"` otherwise.
 ```
 backend/
 ├── app/
-│   ├── main.py                 # Application entry point and factory
+│   ├── main.py                 # Application factory and entry point
 │   ├── api/
 │   │   └── v1/
 │   │       ├── router.py       # Aggregated v1 router
-│   │       ├── schemas.py      # Shared response schemas
+│   │       ├── schemas.py      # Standard response and error envelopes
 │   │       └── endpoints/
 │   │           └── health.py   # GET /api/v1/health
 │   ├── core/
-│   │   ├── config.py           # Pydantic settings (env-driven)
-│   │   ├── exceptions.py       # Domain exceptions + handlers
+│   │   ├── config.py           # Pydantic Settings (connection pooling, env vars)
+│   │   ├── exceptions.py       # Domain exception hierarchy and handlers
 │   │   ├── logging.py          # Structured logging (structlog)
-│   │   └── middleware.py       # Request context + logging middleware
-│   └── infrastructure/
-│       └── database.py         # SQLAlchemy engine + session factory
+│   │   └── middleware.py       # Request context & X-Request-ID middleware
+│   ├── infrastructure/
+│   │   └── database.py         # SQLAlchemy engine, session factory, context managers
+│   └── models/
+│       ├── __init__.py         # Re-exports Base and mixins
+│       └── base.py             # Declarative Base, naming conventions, UUID/Timestamp mixins
 ├── tests/
-│   ├── conftest.py             # Shared pytest fixtures
+│   ├── conftest.py             # Pytest configuration and client fixtures
 │   ├── unit/
-│   │   ├── test_config.py      # Settings validation tests
-│   │   └── test_exceptions.py  # Domain exception tests
+│   │   ├── test_config.py      # Settings and environment validation tests
+│   │   ├── test_database.py    # Naming conventions, mixins, session lifecycle tests
+│   │   └── test_exceptions.py  # Domain error hierarchy tests
 │   └── integration/
-│       └── test_health.py      # Health endpoint integration tests
-├── alembic/                    # Database migration environment
-├── pyproject.toml              # Project metadata + tool config
-├── .env.example                # Environment variable template
-├── Dockerfile                  # Production container image
-├── docker-compose.yml          # Local PostgreSQL service
+│       ├── test_health.py      # Health endpoint integration tests
+│       └── test_database_persistence.py # Real PostgreSQL persistence & migration tests
+├── alembic/
+│   ├── env.py                  # Dynamic configuration and autogenerate metadata loader
+│   ├── script.py.mako          # Migration template
+│   └── versions/               # Tracked migration revisions
+├── alembic.ini                 # Alembic project configuration
+├── pyproject.toml              # Tool configurations and dependencies
+├── .env.example                # Documented configuration template
+├── Dockerfile                  # Production container definition
+├── docker-compose.yml          # Local development PostgreSQL 16 container
 ├── .dockerignore
-└── AGENTS.md                   # Engineering conventions for AI agents
+├── AGENTS.md                   # Agent conventions and layer boundaries
+└── README.md
 ```
-
----
-
-## Architecture Decisions
-
-| Decision | Choice | Reason |
-|----------|--------|--------|
-| Architecture | Modular monolith | Appropriate for project scope; avoids premature complexity |
-| Dependency management | uv | Fast, reproducible, modern Python packaging |
-| Settings | Pydantic Settings | Type-safe, env-var driven, validated at startup |
-| Logging | structlog | Structured JSON in production, readable in dev |
-| Linting | Ruff | Fast, opinionated, replaces flake8 + isort |
-| Type checking | Pyright | Strict, well-integrated with VSCode and FastAPI |
-| Database | PostgreSQL | Required by platform design; relational with strong constraints |
-| ORM | SQLAlchemy 2.x | Industry standard; supports typed mapped columns |
-| Migrations | Alembic | Official SQLAlchemy migration tool |
-
----
-
-## Planned (Future Milestones)
-
-- Authentication and authorisation (JWT, role-based access)
-- Equipment management domain
-- Booking and scheduling workflows
-- OR-Tools CP-SAT allocation engine
-- Gemini AI integration
-- Next.js frontend

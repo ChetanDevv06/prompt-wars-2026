@@ -38,6 +38,32 @@ class Settings(BaseSettings):
         default="postgresql://lablink:lablink_dev_password@localhost:5432/lablink_db",
         description="PostgreSQL connection URL",
     )
+    database_pool_size: int = Field(
+        default=5,
+        ge=1,
+        le=50,
+        description="SQLAlchemy connection pool size",
+    )
+    database_max_overflow: int = Field(
+        default=10,
+        ge=0,
+        le=50,
+        description="SQLAlchemy connection pool max overflow",
+    )
+    database_pool_timeout: int = Field(
+        default=30,
+        ge=1,
+        description="SQLAlchemy pool timeout in seconds",
+    )
+    database_pool_recycle: int = Field(
+        default=1800,
+        ge=60,
+        description="SQLAlchemy pool recycle timeout in seconds",
+    )
+    database_echo: bool = Field(
+        default=False,
+        description="Echo SQL queries to logger (debug only)",
+    )
 
     # CORS
     allowed_origins: list[str] | str = Field(

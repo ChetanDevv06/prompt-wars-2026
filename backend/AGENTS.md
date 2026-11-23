@@ -31,9 +31,11 @@
 
 ### SQLAlchemy
 
-- Use SQLAlchemy 2.x style (mapped columns, type annotations).
-- All models inherit from `app.infrastructure.database.Base`.
-- Never use `Session.execute(raw_string)` — use parameterised queries.
+- Use SQLAlchemy 2.x style (`Mapped`, `mapped_column`, type annotations).
+- All models inherit from `app.models.base.Base`.
+- Use `UUIDPrimaryKeyMixin` and `TimestampMixin` from `app.models.base`.
+- Never use `Session.execute(raw_string)` — use parameterised queries or SQLAlchemy select().
+- Database sessions: use `Depends(get_db)` in endpoints or `with get_db_context():` in services/tasks.
 - Repository pattern: data access lives in `app/repositories/`, not in endpoints.
 
 ### Alembic
