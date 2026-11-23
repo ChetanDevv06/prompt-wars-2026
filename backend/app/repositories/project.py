@@ -118,17 +118,13 @@ class RequirementRepository:
         )
         return self._session.scalar(stmt)
 
-    def create_dependency(
-        self, dependency: RequirementDependency
-    ) -> RequirementDependency:
+    def create_dependency(self, dependency: RequirementDependency) -> RequirementDependency:
         """Persist a new dependency edge."""
         self._session.add(dependency)
         self._session.flush()
         return dependency
 
-    def build_adjacency(
-        self, project_id: uuid.UUID
-    ) -> dict[uuid.UUID, list[uuid.UUID]]:
+    def build_adjacency(self, project_id: uuid.UUID) -> dict[uuid.UUID, list[uuid.UUID]]:
         """
         Build adjacency map (predecessor → list[successor]) for a project's DAG.
 

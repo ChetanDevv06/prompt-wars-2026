@@ -17,6 +17,7 @@ class TestApplicationStartup:
     def test_app_instance_created(self) -> None:
         """FastAPI app instance is accessible."""
         from app.main import app
+
         assert app is not None
         assert app.title == "LabLink API"
 

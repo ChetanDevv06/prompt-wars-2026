@@ -38,16 +38,12 @@ class Equipment(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "equipment"
     __table_args__ = (
         UniqueConstraint("serial_number", name="uq_equipment_serial_number"),
-        CheckConstraint(
-            "length(trim(name)) > 0", name="ck_equipment_name_non_empty"
-        ),
+        CheckConstraint("length(trim(name)) > 0", name="ck_equipment_name_non_empty"),
         CheckConstraint("quantity >= 1", name="ck_equipment_quantity_positive"),
         Index("ix_equipment_laboratory_id", "laboratory_id"),
     )
 
-    name: Mapped[str] = mapped_column(
-        String(255), nullable=False, comment="Equipment display name"
-    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False, comment="Equipment display name")
     model: Mapped[str | None] = mapped_column(
         String(255), nullable=True, comment="Manufacturer model identifier"
     )
@@ -155,10 +151,7 @@ class EquipmentCompatibility(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     def __repr__(self) -> str:
-        return (
-            f"<EquipmentCompatibility "
-            f"{self.equipment_id} → {self.compatible_equipment_id}>"
-        )
+        return f"<EquipmentCompatibility {self.equipment_id} → {self.compatible_equipment_id}>"
 
 
 class MaintenanceWindow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -170,9 +163,7 @@ class MaintenanceWindow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "maintenance_windows"
     __table_args__ = (
-        CheckConstraint(
-            "ends_at > starts_at", name="ck_maintenance_windows_valid_range"
-        ),
+        CheckConstraint("ends_at > starts_at", name="ck_maintenance_windows_valid_range"),
         Index("ix_maintenance_windows_equipment_id", "equipment_id"),
         Index("ix_maintenance_windows_starts_at", "starts_at"),
     )
@@ -196,6 +187,5 @@ class MaintenanceWindow(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     def __repr__(self) -> str:
         return (
-            f"<MaintenanceWindow equipment={self.equipment_id} "
-            f"{self.starts_at} - {self.ends_at}>"
+            f"<MaintenanceWindow equipment={self.equipment_id} {self.starts_at} - {self.ends_at}>"
         )

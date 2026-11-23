@@ -31,47 +31,31 @@ class TestReservationStateMachine:
     """Tests for the reservation state machine rules."""
 
     def test_valid_transition_pending_to_allocated(self) -> None:
-        validate_state_transition(
-            ReservationStatus.PENDING, ReservationStatus.ALLOCATED
-        )
+        validate_state_transition(ReservationStatus.PENDING, ReservationStatus.ALLOCATED)
 
     def test_valid_transition_allocated_to_held(self) -> None:
-        validate_state_transition(
-            ReservationStatus.ALLOCATED, ReservationStatus.PROVISIONALLY_HELD
-        )
+        validate_state_transition(ReservationStatus.ALLOCATED, ReservationStatus.PROVISIONALLY_HELD)
 
     def test_valid_transition_held_to_confirmed(self) -> None:
-        validate_state_transition(
-            ReservationStatus.PROVISIONALLY_HELD, ReservationStatus.CONFIRMED
-        )
+        validate_state_transition(ReservationStatus.PROVISIONALLY_HELD, ReservationStatus.CONFIRMED)
 
     def test_valid_transition_confirmed_to_cancelled(self) -> None:
-        validate_state_transition(
-            ReservationStatus.CONFIRMED, ReservationStatus.CANCELLED
-        )
+        validate_state_transition(ReservationStatus.CONFIRMED, ReservationStatus.CANCELLED)
 
     def test_valid_transition_confirmed_to_released(self) -> None:
-        validate_state_transition(
-            ReservationStatus.CONFIRMED, ReservationStatus.RELEASED
-        )
+        validate_state_transition(ReservationStatus.CONFIRMED, ReservationStatus.RELEASED)
 
     def test_invalid_transition_confirmed_to_pending(self) -> None:
         with pytest.raises(InvalidStateTransitionError):
-            validate_state_transition(
-                ReservationStatus.CONFIRMED, ReservationStatus.PENDING
-            )
+            validate_state_transition(ReservationStatus.CONFIRMED, ReservationStatus.PENDING)
 
     def test_invalid_transition_rejected_to_anything(self) -> None:
         with pytest.raises(InvalidStateTransitionError):
-            validate_state_transition(
-                ReservationStatus.REJECTED, ReservationStatus.PENDING
-            )
+            validate_state_transition(ReservationStatus.REJECTED, ReservationStatus.PENDING)
 
     def test_invalid_transition_expired_to_confirmed(self) -> None:
         with pytest.raises(InvalidStateTransitionError):
-            validate_state_transition(
-                ReservationStatus.EXPIRED, ReservationStatus.CONFIRMED
-            )
+            validate_state_transition(ReservationStatus.EXPIRED, ReservationStatus.CONFIRMED)
 
     def test_terminal_states_have_no_transitions(self) -> None:
         terminals = [
@@ -113,9 +97,7 @@ class TestReservationStateMachine:
             )
 
     def test_error_message_contains_states(self) -> None:
-        exc = InvalidStateTransitionError(
-            ReservationStatus.EXPIRED, ReservationStatus.CONFIRMED
-        )
+        exc = InvalidStateTransitionError(ReservationStatus.EXPIRED, ReservationStatus.CONFIRMED)
         assert "expired" in str(exc)
         assert "confirmed" in str(exc)
 
@@ -185,8 +167,6 @@ class TestDependencyGraph:
     def test_diamond_dag_no_cycle(self) -> None:
         """A diamond-shaped DAG (a→b, a→c, b→d, c→d) should not trigger cycle."""
         a, b, c, d = (self._make_uuid() for _ in range(4))
-        adj: dict[uuid.UUID, list[uuid.UUID]] = {
-            a: [b, c], b: [d], c: [d], d: []
-        }
+        adj: dict[uuid.UUID, list[uuid.UUID]] = {a: [b, c], b: [d], c: [d], d: []}
         cycle = detect_cycle(adj, a)
         assert cycle is None

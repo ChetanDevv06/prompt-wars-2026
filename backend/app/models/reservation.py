@@ -37,12 +37,8 @@ class Reservation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "reservations"
     __table_args__ = (
-        CheckConstraint(
-            "ends_at > starts_at", name="ck_reservations_valid_range"
-        ),
-        CheckConstraint(
-            "quantity_reserved >= 1", name="ck_reservations_quantity_positive"
-        ),
+        CheckConstraint("ends_at > starts_at", name="ck_reservations_valid_range"),
+        CheckConstraint("quantity_reserved >= 1", name="ck_reservations_quantity_positive"),
         # Partial index to enforce uniqueness of confirmed time-windows
         # Full EXCLUDE USING gist requires btree_gist extension; we enforce
         # overlap at the application layer and add a standard index for queries.
@@ -97,9 +93,7 @@ class Reservation(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     approved_by: Mapped[str | None] = mapped_column(
         String(255), nullable=True, comment="Name of approver"
     )
-    approved_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # FK
     equipment_id: Mapped[uuid.UUID] = mapped_column(

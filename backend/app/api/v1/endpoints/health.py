@@ -65,9 +65,7 @@ def health_check() -> HealthResponse:
         status="ok" if db_connected else "degraded",
     )
 
-    overall_status: Literal["ok", "degraded"] = (
-        "ok" if db_connected else "degraded"
-    )
+    overall_status: Literal["ok", "degraded"] = "ok" if db_connected else "degraded"
 
     return HealthResponse(
         status=overall_status,
@@ -75,9 +73,7 @@ def health_check() -> HealthResponse:
         version="0.1.0",
         environment=settings.app_env,
         python_version=(
-            f"{sys.version_info.major}."
-            f"{sys.version_info.minor}."
-            f"{sys.version_info.micro}"
+            f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         ),
         database=db_status,
     )

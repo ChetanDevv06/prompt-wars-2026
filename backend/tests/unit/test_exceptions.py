@@ -44,8 +44,13 @@ class TestDomainExceptions:
         assert exc.error_code == "FORBIDDEN"
 
     def test_all_errors_inherit_from_base(self) -> None:
-        for cls in (NotFoundError, ConflictError, ValidationError,
-                    UnauthorisedError, ForbiddenError):
+        for cls in (
+            NotFoundError,
+            ConflictError,
+            ValidationError,
+            UnauthorisedError,
+            ForbiddenError,
+        ):
             assert issubclass(cls, LabLinkError)
 
     def test_base_error_has_message(self) -> None:

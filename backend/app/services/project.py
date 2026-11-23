@@ -180,9 +180,7 @@ class ProjectService:
             raise NotFoundError(f"Requirement '{req_id}' not found.")
         return req
 
-    def list_requirements(
-        self, project_id: uuid.UUID
-    ) -> list[ProjectResourceRequirement]:
+    def list_requirements(self, project_id: uuid.UUID) -> list[ProjectResourceRequirement]:
         """Return all requirements for a project."""
         self.get_project(project_id)  # validate project exists
         return self._req_repo.list_for_project(project_id)
@@ -222,17 +220,13 @@ class ProjectService:
         succ = self.get_requirement(successor_id)
 
         if pred.project_id != project_id or succ.project_id != project_id:
-            raise ValidationError(
-                "Both requirements must belong to the specified project."
-            )
+            raise ValidationError("Both requirements must belong to the specified project.")
         if predecessor_id == successor_id:
             raise ValidationError("A requirement cannot depend on itself.")
 
         existing = self._req_repo.get_dependency(predecessor_id, successor_id)
         if existing is not None:
-            raise ConflictError(
-                "A dependency between these requirements already exists."
-            )
+            raise ConflictError("A dependency between these requirements already exists.")
 
         # Cycle detection
         adjacency = self._req_repo.build_adjacency(project_id)

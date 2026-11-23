@@ -183,9 +183,7 @@ def list_requirements(
     """List resource requirements for a project."""
     svc = ProjectService(session)
     reqs = svc.list_requirements(project_id)
-    return SuccessResponse(
-        data=[RequirementResponse.model_validate(r) for r in reqs]
-    )
+    return SuccessResponse(data=[RequirementResponse.model_validate(r) for r in reqs])
 
 
 @router.delete(

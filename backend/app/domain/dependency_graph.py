@@ -66,9 +66,7 @@ def topological_sort(adjacency: dict[UUID, list[UUID]]) -> list[UUID]:
         for dep in deps:
             in_degree[dep] = in_degree.get(dep, 0) + 1
 
-    queue: deque[UUID] = deque(
-        node for node, deg in in_degree.items() if deg == 0
-    )
+    queue: deque[UUID] = deque(node for node, deg in in_degree.items() if deg == 0)
     result: list[UUID] = []
 
     while queue:

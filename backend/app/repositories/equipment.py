@@ -80,9 +80,7 @@ class EquipmentRepository:
 
         total = len(list(self._session.scalars(count_stmt)))
         items = list(
-            self._session.scalars(
-                stmt.order_by(Equipment.name).limit(limit).offset(offset)
-            )
+            self._session.scalars(stmt.order_by(Equipment.name).limit(limit).offset(offset))
         )
         return items, total
 
@@ -138,14 +136,10 @@ class EquipmentRepository:
         after: datetime | None = None,
     ) -> list[MaintenanceWindow]:
         """Return upcoming or current maintenance windows for the equipment."""
-        stmt = select(MaintenanceWindow).where(
-            MaintenanceWindow.equipment_id == equipment_id
-        )
+        stmt = select(MaintenanceWindow).where(MaintenanceWindow.equipment_id == equipment_id)
         if after is not None:
             stmt = stmt.where(MaintenanceWindow.ends_at > after)
-        return list(
-            self._session.scalars(stmt.order_by(MaintenanceWindow.starts_at))
-        )
+        return list(self._session.scalars(stmt.order_by(MaintenanceWindow.starts_at)))
 
 
 class MaintenanceWindowRepository:

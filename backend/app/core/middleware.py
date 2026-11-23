@@ -22,9 +22,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     logs structured request/response information.
     """
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = str(uuid.uuid4())
         start = time.perf_counter()
 

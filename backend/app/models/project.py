@@ -39,9 +39,7 @@ class Project(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "projects"
     __table_args__ = (
-        CheckConstraint(
-            "length(trim(name)) > 0", name="ck_projects_name_non_empty"
-        ),
+        CheckConstraint("length(trim(name)) > 0", name="ck_projects_name_non_empty"),
         CheckConstraint(
             "deadline IS NULL OR deadline > created_at",
             name="ck_projects_deadline_after_creation",
@@ -93,9 +91,7 @@ class Project(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
 
     # Relationships
-    department: Mapped[Department | None] = relationship(
-        "Department", back_populates="projects"
-    )
+    department: Mapped[Department | None] = relationship("Department", back_populates="projects")
     resource_requirements: Mapped[list[ProjectResourceRequirement]] = relationship(
         "ProjectResourceRequirement",
         back_populates="project",
@@ -116,12 +112,8 @@ class ProjectResourceRequirement(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "project_resource_requirements"
     __table_args__ = (
-        CheckConstraint(
-            "quantity_required >= 1", name="ck_requirements_quantity_positive"
-        ),
-        CheckConstraint(
-            "duration_minutes >= 1", name="ck_requirements_duration_positive"
-        ),
+        CheckConstraint("quantity_required >= 1", name="ck_requirements_quantity_positive"),
+        CheckConstraint("duration_minutes >= 1", name="ck_requirements_duration_positive"),
         CheckConstraint(
             "earliest_start IS NULL OR latest_end IS NULL OR latest_end > earliest_start",
             name="ck_requirements_valid_window",
@@ -161,9 +153,7 @@ class ProjectResourceRequirement(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Relationships
     project: Mapped[Project] = relationship("Project", back_populates="resource_requirements")
-    equipment: Mapped[Equipment] = relationship(
-        "Equipment", back_populates="resource_requirements"
-    )
+    equipment: Mapped[Equipment] = relationship("Equipment", back_populates="resource_requirements")
     reservations: Mapped[list[Reservation]] = relationship(
         "Reservation", back_populates="requirement"
     )

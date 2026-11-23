@@ -63,11 +63,11 @@ def build_engine(settings: Settings | None = None) -> Engine:
     cfg = settings or get_settings()
 
     engine_kwargs: dict[str, object] = {
-        "pool_pre_ping": True,                     # Test connection aliveness
-        "pool_size": cfg.database_pool_size,       # Persistent pool size
-        "max_overflow": cfg.database_max_overflow, # Max temporary overflow connections
-        "pool_timeout": cfg.database_pool_timeout, # Wait timeout for pool checkout
-        "pool_recycle": cfg.database_pool_recycle, # Periodically recycle connections
+        "pool_pre_ping": True,  # Test connection aliveness
+        "pool_size": cfg.database_pool_size,  # Persistent pool size
+        "max_overflow": cfg.database_max_overflow,  # Max temporary overflow connections
+        "pool_timeout": cfg.database_pool_timeout,  # Wait timeout for pool checkout
+        "pool_recycle": cfg.database_pool_recycle,  # Periodically recycle connections
         "echo": cfg.database_echo or cfg.app_debug,
     }
 

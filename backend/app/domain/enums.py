@@ -138,3 +138,24 @@ class UserRole(enum.StrEnum):
     STUDENT = "student"
     FACULTY = "faculty"
     ADMINISTRATOR = "administrator"
+
+
+class SolverStatus(enum.StrEnum):
+    """
+    CP-SAT solver outcomes as specified in SRS §4.6 and M04 requirements.
+
+    Never report FEASIBLE as OPTIMAL.
+    """
+
+    OPTIMAL = "optimal"
+    FEASIBLE = "feasible"
+    INFEASIBLE = "infeasible"
+    UNKNOWN = "unknown"
+    MODEL_INVALID = "model_invalid"
+
+
+class AllocationRunType(enum.StrEnum):
+    """Mode of allocation execution."""
+
+    IMMEDIATE = "immediate"
+    BATCH = "batch"

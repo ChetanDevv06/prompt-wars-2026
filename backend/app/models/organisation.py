@@ -45,9 +45,7 @@ class Department(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     laboratories: Mapped[list[Laboratory]] = relationship(
         "Laboratory", back_populates="department", cascade="all, delete-orphan"
     )
-    projects: Mapped[list[Project]] = relationship(
-        "Project", back_populates="department"
-    )
+    projects: Mapped[list[Project]] = relationship("Project", back_populates="department")
 
     def __repr__(self) -> str:
         return f"<Department id={self.id} code={self.code!r}>"
@@ -63,9 +61,7 @@ class Laboratory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "laboratories"
     __table_args__ = (
         UniqueConstraint("code", name="uq_laboratories_code"),
-        CheckConstraint(
-            "length(trim(name)) > 0", name="ck_laboratories_name_non_empty"
-        ),
+        CheckConstraint("length(trim(name)) > 0", name="ck_laboratories_name_non_empty"),
         Index("ix_laboratories_department_id", "department_id"),
     )
 
@@ -79,9 +75,7 @@ class Laboratory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         String(255), nullable=True, comment="Physical location / building / room"
     )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    capacity: Mapped[int | None] = mapped_column(
-        nullable=True, comment="Maximum concurrent users"
-    )
+    capacity: Mapped[int | None] = mapped_column(nullable=True, comment="Maximum concurrent users")
     is_active: Mapped[bool] = mapped_column(
         default=True, nullable=False, comment="Whether the laboratory accepts bookings"
     )
@@ -93,9 +87,7 @@ class Laboratory(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     # Relationships
     department: Mapped[Department] = relationship("Department", back_populates="laboratories")
-    equipment: Mapped[list[Equipment]] = relationship(
-        "Equipment", back_populates="laboratory"
-    )
+    equipment: Mapped[list[Equipment]] = relationship("Equipment", back_populates="laboratory")
 
     def __repr__(self) -> str:
         return f"<Laboratory id={self.id} code={self.code!r}>"

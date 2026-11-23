@@ -150,6 +150,7 @@ class TestORMBasicPersistence:
         in_memory_session.flush()
 
         from datetime import datetime, timedelta
+
         now = datetime.now(UTC)
         res = Reservation(
             equipment_id=equip.id,
@@ -178,6 +179,7 @@ class TestORMBasicPersistence:
         in_memory_session.flush()
 
         from datetime import datetime, timedelta
+
         now = datetime.now(UTC)
         res = Reservation(
             equipment_id=equip.id,

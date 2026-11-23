@@ -85,10 +85,12 @@ class ReservationRepository:
         stmt = select(Reservation).where(
             and_(
                 Reservation.equipment_id == equipment_id,
-                Reservation.status.in_([
-                    ReservationStatus.CONFIRMED.value,
-                    ReservationStatus.PROVISIONALLY_HELD.value,
-                ]),
+                Reservation.status.in_(
+                    [
+                        ReservationStatus.CONFIRMED.value,
+                        ReservationStatus.PROVISIONALLY_HELD.value,
+                    ]
+                ),
                 Reservation.starts_at < ends_at,
                 Reservation.ends_at > starts_at,
             )

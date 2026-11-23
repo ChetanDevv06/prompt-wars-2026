@@ -90,9 +90,7 @@ class TestDepartmentAPI:
 
     def test_create_department_duplicate_code_returns_409(self, api_client) -> None:
         api_client.post("/api/v1/departments", json={"name": "Dept A", "code": "DUPCODE"})
-        resp = api_client.post(
-            "/api/v1/departments", json={"name": "Dept B", "code": "DUPCODE"}
-        )
+        resp = api_client.post("/api/v1/departments", json={"name": "Dept B", "code": "DUPCODE"})
         assert resp.status_code == 409, resp.text
 
     def test_list_departments_returns_200(self, api_client) -> None:
@@ -139,9 +137,7 @@ class TestLaboratoryAPI:
     @pytest.fixture(autouse=True)
     def _dept_id(self, api_client) -> None:
         code = f"LD{uuid.uuid4().hex[:4].upper()}"
-        resp = api_client.post(
-            "/api/v1/departments", json={"name": "Lab Dept", "code": code}
-        )
+        resp = api_client.post("/api/v1/departments", json={"name": "Lab Dept", "code": code})
         self.dept_id = resp.json()["data"]["id"]
 
     def test_create_laboratory_returns_201(self, api_client) -> None:

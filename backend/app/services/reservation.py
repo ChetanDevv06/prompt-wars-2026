@@ -136,9 +136,7 @@ class ReservationService:
         reservation = self._get_or_raise(reservation_id)
         self._check_no_conflict(reservation)
 
-        reservation.hold_expires_at = datetime.now(UTC) + timedelta(
-            minutes=hold_minutes
-        )
+        reservation.hold_expires_at = datetime.now(UTC) + timedelta(minutes=hold_minutes)
         return self._transition_existing(
             reservation,
             to_status=ReservationStatus.PROVISIONALLY_HELD,
@@ -215,9 +213,7 @@ class ReservationService:
         reservation = self._get_or_raise(reservation_id)
         if not can_cancel(reservation.status):
             st_val = getattr(reservation.status, "value", str(reservation.status))
-            raise ValidationError(
-                f"Reservation in '{st_val}' state cannot be cancelled."
-            )
+            raise ValidationError(f"Reservation in '{st_val}' state cannot be cancelled.")
         return self._transition_existing(
             reservation,
             to_status=ReservationStatus.CANCELLED,
@@ -329,8 +325,7 @@ class ReservationService:
         if conflicts:
             conflicting_ids = [str(c.id) for c in conflicts]
             raise ConflictError(
-                f"Reservation conflicts with existing reservations: "
-                f"{', '.join(conflicting_ids)}"
+                f"Reservation conflicts with existing reservations: {', '.join(conflicting_ids)}"
             )
 
     def _transition(

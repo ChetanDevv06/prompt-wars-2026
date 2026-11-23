@@ -12,10 +12,12 @@ class TestSettings:
 
     def setup_method(self) -> None:
         from app.core.config import get_settings
+
         get_settings.cache_clear()
 
     def teardown_method(self) -> None:
         from app.core.config import get_settings
+
         get_settings.cache_clear()
 
     def test_default_settings_load(self) -> None:

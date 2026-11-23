@@ -5,6 +5,7 @@ Importing this package ensures all models are registered with SQLAlchemy's
 declarative Base metadata, which is required for Alembic autogeneration.
 """
 
+from app.models.allocation import AllocationAssignment, AllocationRun
 from app.models.base import (
     Base,
     IntegerPrimaryKeyMixin,
@@ -18,6 +19,8 @@ from app.models.project import Project, ProjectResourceRequirement, RequirementD
 from app.models.reservation import Reservation, ReservationHistory
 
 __all__ = [
+    "AllocationAssignment",
+    "AllocationRun",
     "Base",
     "Department",
     "Equipment",

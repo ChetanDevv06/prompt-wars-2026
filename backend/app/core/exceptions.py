@@ -90,9 +90,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     """Register all exception handlers on the FastAPI application."""
 
     @app.exception_handler(LabLinkError)
-    async def lablink_error_handler(
-        request: Request, exc: LabLinkError
-    ) -> JSONResponse:
+    async def lablink_error_handler(request: Request, exc: LabLinkError) -> JSONResponse:
         logger.warning(
             "domain_error",
             error_code=exc.error_code,
@@ -110,8 +108,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         # Flatten Pydantic v2 error list into a readable message
         details = "; ".join(
-            f"{'.'.join(str(loc) for loc in e['loc'])}: {e['msg']}"
-            for e in exc.errors()
+            f"{'.'.join(str(loc) for loc in e['loc'])}: {e['msg']}" for e in exc.errors()
         )
         logger.info(
             "request_validation_error",
@@ -124,9 +121,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_error_handler(
-        request: Request, exc: Exception
-    ) -> JSONResponse:
+    async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.exception(
             "unhandled_error",
             path=request.url.path,
