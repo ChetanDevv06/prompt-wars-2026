@@ -16,8 +16,9 @@ COPY pyproject.toml .
 RUN touch README.md
 
 # Install dependencies into /build/.venv
-RUN uv venv .venv && \
-    uv pip install --python .venv/bin/python --no-cache .
+RUN uv venv /build/.venv && \
+    uv pip install --python /build/.venv/bin/python --no-cache . && \
+    sed -i 's|/build/\.venv|/app/.venv|g' /build/.venv/bin/*
 
 # --- Runtime stage ---
 FROM python:3.12-slim AS runtime
@@ -30,11 +31,14 @@ RUN addgroup --system lablink && adduser --system --ingroup lablink lablink
 # Copy installed packages from builder
 COPY --from=builder /build/.venv /app/.venv
 
+# Maintain backwards compatibility symlink for build path
+RUN mkdir -p /build && ln -s /app/.venv /build/.venv
+
 # Copy application source
 COPY app/ ./app/
 
-# Set ownership
-RUN chown -R lablink:lablink /app
+# Set ownership and executable permissions
+RUN chmod +x /app/.venv/bin/* && chown -R lablink:lablink /app /build
 
 USER lablink
 
@@ -47,4 +51,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
