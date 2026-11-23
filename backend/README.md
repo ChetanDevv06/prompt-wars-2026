@@ -212,6 +212,58 @@ uv run pyright
 
 ---
 
+## Core API Endpoints (v1)
+
+All endpoints are versioned under `/api/v1/` and return standard envelopes `SuccessResponse[T]` or `ErrorResponse`.
+
+### 1. Health & Status
+- `GET /api/v1/health` — Application and database connectivity health check.
+
+### 2. Organisation (Departments & Laboratories)
+- `POST /api/v1/departments` — Register a new department.
+- `GET /api/v1/departments` — List departments (`?active_only=true`).
+- `GET /api/v1/departments/{id}` — Retrieve department by ID.
+- `PATCH /api/v1/departments/{id}` — Update department details.
+- `POST /api/v1/laboratories` — Register a laboratory in a department.
+- `GET /api/v1/laboratories` — List laboratories (`?department_id=...&active_only=true`).
+- `GET /api/v1/laboratories/{id}` — Retrieve laboratory by ID.
+- `PATCH /api/v1/laboratories/{id}` — Update laboratory details.
+
+### 3. Equipment & Maintenance
+- `POST /api/v1/equipment` — Register laboratory equipment.
+- `GET /api/v1/equipment` — List equipment (`?category=...&status=...&search=...&limit=50&offset=0`).
+- `GET /api/v1/equipment/{id}` — Retrieve equipment details.
+- `PATCH /api/v1/equipment/{id}` — Update equipment operational status/quantity/details.
+- `POST /api/v1/equipment/{id}/maintenance` — Schedule maintenance window.
+- `DELETE /api/v1/equipment/{id}/maintenance/{window_id}` — Remove maintenance window.
+- `POST /api/v1/equipment/{id}/compatibility` — Declare compatible substitute equipment.
+
+### 4. Projects & Resource Requirements
+- `POST /api/v1/projects` — Create research/coursework project.
+- `GET /api/v1/projects` — List projects with pagination and status filters.
+- `GET /api/v1/projects/{id}` — Retrieve project details.
+- `PATCH /api/v1/projects/{id}` — Update project status/priority/deadlines.
+- `POST /api/v1/projects/{id}/requirements` — Add equipment requirement with duration and time window.
+- `GET /api/v1/projects/{id}/requirements` — List all requirements for a project.
+- `DELETE /api/v1/projects/{id}/requirements/{req_id}` — Remove requirement.
+- `POST /api/v1/projects/{id}/dependencies` — Add DAG dependency edge between requirements (cycle-validated).
+
+### 5. Reservations & Booking Lifecycle
+- `POST /api/v1/reservations` — Create PENDING reservation.
+- `GET /api/v1/reservations` — List reservations with filters (`?equipment_id=...&status=...`).
+- `GET /api/v1/reservations/{id}` — Retrieve reservation with full audit history.
+- `POST /api/v1/reservations/{id}/hold` — Place provisional hold (`hold_minutes=60`).
+- `POST /api/v1/reservations/{id}/confirm` — Faculty/Admin approval and confirmation with overlap check.
+- `POST /api/v1/reservations/{id}/reject` — Reject reservation with reason.
+- `POST /api/v1/reservations/{id}/cancel` — Cancel eligible reservation.
+- `POST /api/v1/reservations/{id}/release` — Mark confirmed reservation as released.
+- `POST /api/v1/reservations/expire-holds` — Expire stale provisional holds.
+
+### 6. Resource Matching
+- `POST /api/v1/matching/check` — Deterministic evaluation of equipment availability, maintenance, and compatible substitutes.
+
+---
+
 ## Project Structure
 
 ```
@@ -221,32 +273,54 @@ backend/
 │   ├── api/
 │   │   └── v1/
 │   │       ├── router.py       # Aggregated v1 router
-│   │       ├── schemas.py      # Standard response and error envelopes
+│   │       ├── schemas/        # Pydantic request/response schemas
 │   │       └── endpoints/
-│   │           └── health.py   # GET /api/v1/health
+│   │           ├── health.py   # Health status endpoint
+│   │           ├── organisation.py # Department & laboratory endpoints
+│   │           ├── equipment.py    # Equipment, maintenance, & compatibility endpoints
+│   │           ├── project.py      # Project, requirements, & DAG dependency endpoints
+│   │           ├── reservation.py  # Reservation lifecycle endpoints
+│   │           └── matching.py     # Deterministic resource matching endpoint
 │   ├── core/
-│   │   ├── config.py           # Pydantic Settings (connection pooling, env vars)
+│   │   ├── config.py           # Pydantic Settings
 │   │   ├── exceptions.py       # Domain exception hierarchy and handlers
 │   │   ├── logging.py          # Structured logging (structlog)
 │   │   └── middleware.py       # Request context & X-Request-ID middleware
+│   ├── domain/
+│   │   ├── enums.py            # Centralized lifecycle and category enums
+│   │   ├── reservation_rules.py# Reservation state machine transitions
+│   │   └── dependency_graph.py # DAG cycle detection & topological sort
 │   ├── infrastructure/
 │   │   └── database.py         # SQLAlchemy engine, session factory, context managers
-│   └── models/
-│       ├── __init__.py         # Re-exports Base and mixins
-│       └── base.py             # Declarative Base, naming conventions, UUID/Timestamp mixins
+│   ├── intelligence/
+│   │   └── matching.py         # Deterministic candidate evaluation service
+│   ├── models/
+│   │   ├── __init__.py         # Re-exports all domain models for Alembic autogeneration
+│   │   ├── base.py             # Declarative Base, naming conventions, UUID/Timestamp mixins
+│   │   ├── organisation.py     # Department, Laboratory
+│   │   ├── equipment.py        # Equipment, EquipmentCompatibility, MaintenanceWindow
+│   │   ├── project.py          # Project, ProjectResourceRequirement, RequirementDependency
+│   │   └── reservation.py      # Reservation, ReservationHistory
+│   ├── repositories/           # Encapsulated SQLAlchemy 2.x data access layer
+│   └── services/               # Application service layer
 ├── tests/
 │   ├── conftest.py             # Pytest configuration and client fixtures
 │   ├── unit/
 │   │   ├── test_config.py      # Settings and environment validation tests
 │   │   ├── test_database.py    # Naming conventions, mixins, session lifecycle tests
-│   │   └── test_exceptions.py  # Domain error hierarchy tests
+│   │   ├── test_domain.py      # State machine and DAG cycle validation tests
+│   │   ├── test_exceptions.py  # Domain error hierarchy tests
+│   │   ├── test_models.py      # Model registration and SQLite persistence tests
+│   │   └── test_services.py    # Service layer logic, transitions, and conflict tests
 │   └── integration/
+│       ├── test_api.py         # Full REST API integration test suite (134 tests)
 │       ├── test_health.py      # Health endpoint integration tests
 │       └── test_database_persistence.py # Real PostgreSQL persistence & migration tests
 ├── alembic/
 │   ├── env.py                  # Dynamic configuration and autogenerate metadata loader
 │   ├── script.py.mako          # Migration template
 │   └── versions/               # Tracked migration revisions
+│       └── 7a05d66a0d0b_create_domain_models_m03.py
 ├── alembic.ini                 # Alembic project configuration
 ├── pyproject.toml              # Tool configurations and dependencies
 ├── .env.example                # Documented configuration template

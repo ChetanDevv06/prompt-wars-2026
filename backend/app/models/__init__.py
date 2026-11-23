@@ -1,23 +1,35 @@
 """
-LabLink Models package.
+ORM model registry.
 
-Exposes declarative Base and reusable ORM mixins.
-Domain entity models will be introduced in subsequent milestones.
+Importing this package ensures all models are registered with SQLAlchemy's
+declarative Base metadata, which is required for Alembic autogeneration.
 """
 
 from app.models.base import (
-    POSTGRES_NAMING_CONVENTION,
     Base,
     IntegerPrimaryKeyMixin,
     SoftDeleteMixin,
     TimestampMixin,
     UUIDPrimaryKeyMixin,
 )
+from app.models.equipment import Equipment, EquipmentCompatibility, MaintenanceWindow
+from app.models.organisation import Department, Laboratory
+from app.models.project import Project, ProjectResourceRequirement, RequirementDependency
+from app.models.reservation import Reservation, ReservationHistory
 
 __all__ = [
-    "POSTGRES_NAMING_CONVENTION",
     "Base",
+    "Department",
+    "Equipment",
+    "EquipmentCompatibility",
     "IntegerPrimaryKeyMixin",
+    "Laboratory",
+    "MaintenanceWindow",
+    "Project",
+    "ProjectResourceRequirement",
+    "RequirementDependency",
+    "Reservation",
+    "ReservationHistory",
     "SoftDeleteMixin",
     "TimestampMixin",
     "UUIDPrimaryKeyMixin",

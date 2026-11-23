@@ -110,13 +110,20 @@ All linting and type checks must pass before committing.
 
 ---
 
-## What Is Not Implemented Yet (M01)
+## What Is Implemented (M01-M03)
 
-- Authentication and authorisation.
-- Equipment management.
-- Booking workflows.
-- Allocation engine (OR-Tools CP-SAT).
-- Gemini AI integration.
-- Frontend.
+- Backend foundation, structured logging, middleware, centralized error handling.
+- PostgreSQL persistence layer, connection pooling, and Alembic migrations.
+- Domain models: Department, Laboratory, Equipment, EquipmentCompatibility, MaintenanceWindow, Project, ProjectResourceRequirement, RequirementDependency, Reservation, ReservationHistory.
+- Deterministic resource matching service (`ResourceMatchingService`).
+- Reservation lifecycle state machine with conflict prevention and audit logging.
+- REST API endpoints under `/api/v1` for Organisation, Equipment, Projects, Reservations, and Matching.
 
-Do not implement these in M01.
+---
+
+## What Is Not Implemented Yet (Future Milestones)
+
+- M04: LIAE Global Optimization Engine (OR-Tools CP-SAT) and need-aware fairness algorithms.
+- M05: GenAI & Gemini API integration for natural language discovery and explanations.
+- Frontend: Next.js/React interface.
+- Authentication & Authorization: Strictly restricted until competition instructions explicitly require it.
