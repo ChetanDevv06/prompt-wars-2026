@@ -1,0 +1,10 @@
+"""
+Alembic configuration.
+
+env.py is generated during `alembic init`. This directory
+is a placeholder for future migrations.
+
+Run `alembic init alembic` from the backend/ directory to
+initialise the migrations environment, then update
+alembic/env.py to import from app.infrastructure.database.Base.
+"""

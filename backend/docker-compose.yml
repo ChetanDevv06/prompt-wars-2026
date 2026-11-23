@@ -1,0 +1,27 @@
+# ============================================================
+# LabLink — Local Development Docker Compose
+# Provides a PostgreSQL instance for local development.
+# The backend application is run directly (not in Docker)
+# during development.
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lablink_postgres
+    environment:
+      POSTGRES_USER: lablink
+      POSTGRES_PASSWORD: lablink_dev_password
+      POSTGRES_DB: lablink_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lablink -d lablink_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
